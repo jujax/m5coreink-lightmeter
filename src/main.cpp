@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+// Define constants for pins, EEPROM size, and inactivity timeout
 #define EINK_CS 9
 #define EINK_DC 15
 #define EINK_RST 0
@@ -21,9 +22,11 @@
 #define EEPROM_SIZE 64
 #define INACTIVITY_TIMEOUT 60000
 
+// Initialize display and light meter objects
 GxEPD2_BW<GxEPD2_154_M09, GxEPD2_154_M09::HEIGHT> display(GxEPD2_154_M09(EINK_CS, EINK_DC, EINK_RST, EINK_BUSY));
 BH1750 lightMeter(0x23);
 
+// Declare global variables for light meter status, mode, and settings
 bool lightMeterOk = true;
 bool crazyMode = false;
 float lux = 0;
@@ -35,6 +38,8 @@ float selectedAperture = 2.8;
 float selectedShutterSpeed = 1.0;
 std::string selectedShutterSpeedString = "1s";
 int selectedISO = 400;
+
+// Define enumerations for different modes
 enum Mode
 {
   APERTURE_PRIORITY,
@@ -43,11 +48,13 @@ enum Mode
 Mode currentMode = APERTURE_PRIORITY;
 unsigned long lastActivity = 0;
 
+// Define vectors for shutter speeds, apertures, and ISO values
 const std::vector<float> shutterSpeeds = {30.0f, 15.0f, 8.0f, 4.0f, 2.0f, 1.0f, 0.5f, 0.25f, 0.125f, 0.0667f, 0.0333f, 0.0167f, 0.008f, 0.004f, 0.002f, 0.001f};
 const std::vector<std::string> shutterSpeedsString = {"30s", "15s", "8s", "4s", "2s", "1s", "1/2", "1/4", "1/8", "1/15", "1/30", "1/60", "1/125", "1/250", "1/500", "1/1000"};
 const std::vector<float> apertures = {1.4f, 1.8f, 2.0f, 2.8f, 3.5f, 4.0f, 5.6f, 8.0f, 11.0f, 16.0f, 22.0f};
 const std::vector<int> isoValues = {50, 100, 200, 400, 800, 1600};
 
+// Function to get battery voltage
 float getBatVoltage()
 {
   analogSetPinAttenuation(35, ADC_11db);
@@ -64,6 +71,7 @@ float getBatVoltage()
   return BatVol;
 }
 
+// Function to find the closest shutter speed
 float closestShutter(float shutterSpeed)
 {
   Serial.print("Function called with shutter: ");
@@ -99,6 +107,7 @@ float closestShutter(float shutterSpeed)
   return shutterSpeeds[closestIndex]; // Retourne l'ouverture la plus proche
 }
 
+// Function to find the closest aperture
 float closestAperture(float aperture)
 {
   Serial.print("Function called with aperture: ");
@@ -133,6 +142,7 @@ float closestAperture(float aperture)
   return apertures[closestIndex]; // Retourne l'ouverture la plus proche
 }
 
+// Function to convert shutter speed to string
 std::string convertShutterToString(float shutterSpeed)
 {
   size_t index = 0;
@@ -147,6 +157,7 @@ std::string convertShutterToString(float shutterSpeed)
   return shutterSpeedsString[index];
 }
 
+// Function to calculate exposure value (EV)
 double calculateEV(float lux)
 {
   double n = 0.32;
@@ -158,7 +169,7 @@ double calculateEV(float lux)
   return iv + sv;
 }
 
-// Calcul de l'ouverture (f-stop)
+// Function to calculate aperture based on EV, ISO, and shutter speed
 float calculateAperture(double ev, int iso, float shutterSpeed)
 {
   double sv = log2(iso / 100.0); // Sensibilité ISO en log2
@@ -171,7 +182,7 @@ float calculateAperture(double ev, int iso, float shutterSpeed)
   return sqrt(shutterSpeed * pow(2, ev + sv)); // Retourne l'ouverture N
 }
 
-// Calcul du temps de pose
+// Function to calculate shutter speed based on EV, ISO, and aperture
 float calculateShutterSpeed(double ev, int iso, float aperture)
 {
   float sv = log2(iso / 100.0f); // Sensibilité ISO en log2
@@ -184,6 +195,7 @@ float calculateShutterSpeed(double ev, int iso, float aperture)
   return (aperture * aperture) / pow(2, ev + sv); // Retourne le temps de pose t
 }
 
+// Function to recalculate parameters based on the current mode
 void recalculateParameter()
 {
   if (currentMode == APERTURE_PRIORITY)
@@ -205,6 +217,8 @@ void recalculateParameter()
     Serial.println(selectedAperture);
   }
 }
+
+// Function to save settings to EEPROM
 void saveSettingsToEEPROM()
 {
   EEPROM.begin(EEPROM_SIZE);
@@ -214,6 +228,8 @@ void saveSettingsToEEPROM()
   EEPROM.put(12, selectedShutterSpeed);
   EEPROM.commit();
 }
+
+// Function to load settings from EEPROM
 void loadSettingsFromEEPROM()
 {
   EEPROM.begin(EEPROM_SIZE);
@@ -225,12 +241,16 @@ void loadSettingsFromEEPROM()
   int shutterIndex;
   EEPROM.get(12, selectedShutterSpeed);
 }
+
+// Function to enter sleep mode
 void enterSleepMode()
 {
   saveSettingsToEEPROM();
   display.powerOff();
   digitalWrite(POWER_PIN, LOW);
 }
+
+// Function to render the menu on the display
 void renderMenu()
 {
   display.setFullWindow();
@@ -311,6 +331,8 @@ void renderMenu()
     }
   } while (display.nextPage());
 }
+
+// Setup function to initialize the system
 void setup()
 {
   Serial.begin(115200);
@@ -359,6 +381,8 @@ void setup()
   Serial.print("Loaded Mode: ");
   Serial.println(currentMode == APERTURE_PRIORITY ? "Aperture" : "Shutter");
 }
+
+// Loop function to handle button presses and update the display
 void loop()
 {
 
