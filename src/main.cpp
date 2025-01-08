@@ -20,7 +20,7 @@
 #define POWER_PIN 12
 #define LED_PIN 10
 #define EEPROM_SIZE 64
-#define INACTIVITY_TIMEOUT 60000
+#define INACTIVITY_TIMEOUT 20000
 
 // Initialize display and light meter objects
 GxEPD2_BW<GxEPD2_154_M09, GxEPD2_154_M09::HEIGHT> display(GxEPD2_154_M09(EINK_CS, EINK_DC, EINK_RST, EINK_BUSY));
@@ -226,6 +226,7 @@ void saveSettingsToEEPROM()
   EEPROM.put(4, selectedAperture);
   EEPROM.put(8, currentMode);
   EEPROM.put(12, selectedShutterSpeed);
+  EEPROM.put(16, ev);
   EEPROM.commit();
 }
 
@@ -240,27 +241,20 @@ void loadSettingsFromEEPROM()
   currentMode = static_cast<Mode>(mode);
   int shutterIndex;
   EEPROM.get(12, selectedShutterSpeed);
-}
-
-// Function to enter sleep mode
-void enterSleepMode()
-{
-  saveSettingsToEEPROM();
-  display.powerOff();
-  digitalWrite(POWER_PIN, LOW);
+  EEPROM.get(16, ev);
 }
 
 // Function to render the menu on the display
-void renderMenu()
+void renderMenu(bool invertDisplay = false)
 {
   display.setFullWindow();
   display.firstPage();
   do
   {
-    display.fillScreen(GxEPD_WHITE);
+    display.fillScreen(invertDisplay ? GxEPD_BLACK : GxEPD_WHITE);
     display.setCursor(0, 10);
     display.setTextSize(2);
-    display.setTextColor(GxEPD_BLACK);
+    display.setTextColor(invertDisplay ? GxEPD_WHITE : GxEPD_BLACK);
     display.print("Light Meter: ");
     lightMeterOk ? display.println("OK") : display.println("NOK");
     display.setCursor(0, 30);
@@ -279,13 +273,13 @@ void renderMenu()
     display.println(ev, 0);
     for (int i = 0; i < 4; i++)
     {
-      display.setCursor(0, 90 + i * 30);
+      display.setCursor(0, 90 + i * 25);
       if (i == menuSelection)
         display.print(editMode ? "* " : "> ");
       else if (i == 3)
         display.print("");
       else
-        display.print("  ");
+        display.print("- ");
       switch (i)
       {
       case 0:
@@ -299,37 +293,44 @@ void renderMenu()
       case 2:
         if (currentMode == APERTURE_PRIORITY)
         {
-          display.print("Aperture: ");
+          display.print("Aperture:");
           display.println(selectedAperture);
         }
         else
         {
-          display.print("Shutter: ");
+          display.print("Shutter:");
           display.println(convertShutterToString(selectedShutterSpeed).c_str());
         }
         break;
       case 3:
         if (currentMode == SHUTTER_PRIORITY)
         {
-          display.setTextColor(GxEPD_WHITE, GxEPD_BLACK);
-          display.print("= Aperture: ");
+          display.setTextSize(3);
+          display.print(" Aprt:");
           display.println(selectedAperture);
-          display.setTextColor(GxEPD_BLACK, GxEPD_WHITE);
           Serial.print("Closest Aperture: ");
           Serial.println(selectedAperture);
         }
         else
         {
-          display.setTextColor(GxEPD_WHITE, GxEPD_BLACK);
-          display.print("= Shutter: ");
+          display.setTextSize(3);
+          display.print(" Sht:");
           display.println(convertShutterToString(selectedShutterSpeed).c_str());
-          display.setTextColor(GxEPD_BLACK, GxEPD_WHITE);
           Serial.print("Closest Shutter: ");
           Serial.println(selectedShutterSpeed);
         }
       }
     }
   } while (display.nextPage());
+}
+
+// Function to enter sleep mode
+void enterSleepMode()
+{
+  saveSettingsToEEPROM();
+  renderMenu(true);
+  display.powerOff();
+  digitalWrite(POWER_PIN, LOW);
 }
 
 // Setup function to initialize the system
@@ -361,14 +362,6 @@ void setup()
   display.display();
   display.setFullWindow();
   display.firstPage();
-  do
-  {
-    display.setCursor(0, 10);
-    display.setTextSize(2);
-    display.setTextColor(GxEPD_BLACK);
-    display.println("Light Meter Init...");
-  } while (display.nextPage());
-  delay(2000);
   needsUpdate = true;
   lastActivity = millis();
 
