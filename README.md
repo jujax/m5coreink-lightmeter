@@ -1,6 +1,30 @@
 # M5CoreInk Light Meter
 
-This project is a light meter application for the M5Stack CoreInk device. It measures the ambient light using a BH1750 sensor and calculates the exposure value (EV) to help photographers determine the correct aperture, shutter speed, and ISO settings for their cameras.
+This project is a light meter application for the M5Stack CoreInk device. It measures the light intensity using a BH1750 sensor and calculates the exposure value (EV) for photography. The application allows users to select different modes, ISO values, shutter speeds, and apertures.
+
+## Features
+
+* Measure light intensity using the BH1750 sensor
+* Calculate exposure value (EV)
+* Aperture priority and shutter priority modes
+* Selectable ISO values, shutter speeds, and apertures
+* Save and load settings to/from EEPROM
+* Display information on the M5Stack CoreInk e-ink display
+* Battery voltage monitoring
+* Enter sleep mode after inactivity
+
+## Hardware Requirements
+
+* M5Stack CoreInk
+* BH1750 light sensor
+
+## Software Requirements
+
+* PlatformIO
+* Arduino framework
+* Adafruit GFX Library
+* Adafruit BusIO
+* GxEPD2 Library
 
 ## Installation
 
@@ -9,7 +33,7 @@ This project is a light meter application for the M5Stack CoreInk device. It mea
    git clone https://github.com/jujax/m5coreink-lightmeter.git
    ```
 2. Open the project in PlatformIO.
-3. Connect your M5Stack CoreInk device to your computer.
+3. Connect the M5Stack CoreInk device to your computer.
 4. Upload the code to the device.
 
 ## Usage
@@ -21,6 +45,7 @@ This project is a light meter application for the M5Stack CoreInk device. It mea
    - `BTN_DOWN`: Move down in the menu or decrease the selected value.
    - `BTN_OK`: Select the current menu item or toggle edit mode.
    - `BTN_POWER`: Measure the ambient light and update the exposure value (EV).
+4. The device will enter sleep mode after 60 seconds of inactivity.
 
 ## Contributing
 
@@ -33,4 +58,11 @@ Contributions are welcome! Please follow these steps to contribute:
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Acknowledgements
+
+* Adafruit GFX Library
+* Adafruit BusIO
+* GxEPD2 Library
+* BH1750 Library
