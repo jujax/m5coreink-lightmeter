@@ -347,7 +347,7 @@ void setup()
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
 
-  Wire.begin();
+  Wire.begin(25, 26);
   if (!lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE))
   {
     Serial.println("BH1750 sensor not detected, default EV value will be used.");
