@@ -1,5 +1,7 @@
 # M5CoreInk Light Meter
 
+![M5coreink with BH1750](assets/1.jpeg)
+
 This project is a light meter application for the M5Stack CoreInk device. It measures the light intensity using a BH1750 sensor and calculates the exposure value (EV) for photography. The application allows users to select different modes, ISO values, shutter speeds, and apertures.
 
 ## Features
